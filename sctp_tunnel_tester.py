@@ -1,72 +1,260 @@
-from socket import AF_INET, socket
-from sctp import sctpsocket_tcp
-import threading
-import time
+Active_gNBs = ( "du-rfsim");
+# Asn1_verbosity, choice in: none, info, annoying
+Asn1_verbosity = "none";
 
-# -----------------------------
-# NETWORK CONFIGURATION
-# -----------------------------
+gNBs =
+(
+ {
+    ////////// Identification parameters:
+    gNB_ID = 0xe00;
+    gNB_DU_ID = 0xe00;
 
-CU_IP = "10.108.202.32"
-DU_IP = "10.108.202.33"
-TUNNEL_IP = "10.109.202.32"
-SCTP_PORT = 38472
-BUFFER_SIZE = 128 * 10 ** 3
+#     cell_type =  "CELL_MACRO_GNB";
 
-# DISTANCE SETTINGS
-DISTANCE_KM = 20  # 20 km distance
-LIGHT_SPEED = 200000000  # Speed in fiber optic (km/s)
-DELAY_SEC = (DISTANCE_KM / LIGHT_SPEED)
+    gNB_name  =  "du-rfsim";
 
-# -----------------------------
-# SCTP CONNECTIONS
-# -----------------------------
+    // Tracking area code, 0x0000 and 0xfffe are reserved values
+    tracking_area_code  =  1;
+    plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1 }, { sst = 2 }, { sst = 3 } ) });
 
-def setup_sctp_connection():
-    server_socket = sctpsocket_tcp(AF_INET)
-    server_socket.bind((TUNNEL_IP, SCTP_PORT))
-    server_socket.listen(1)
-    du_conn, addr = server_socket.accept()
-    print(f"✅ Connected to DU at {addr}")
 
-    cu_client_socket = sctpsocket_tcp(AF_INET)
-    cu_client_socket.connect((DU_IP, SCTP_PORT))
-    print("✅ Connected to CU")
-    
-    return du_conn, cu_client_socket
+    nr_cellid = 12345678L;
 
-# -----------------------------
-# MESSAGE FORWARDING WITHOUT QuNetSim
-# -----------------------------
+    ////////// Physical parameters:
 
-def receive_and_forward(src_name, conn, forward_conn):
-    while True:
-        try:
-            data = conn.recv(BUFFER_SIZE)
-            if data:
-                print(f"📥 {src_name} received {len(data)} bytes")
-                
-                # Simulate delay
-                time.sleep(DELAY_SEC)
-                
-                # Forward through SCTP tunnel
-                forward_conn.send(data)
-                print(f"📤 {src_name} forwarded {len(data)} bytes with {DELAY_SEC:.12f}s delay")
-        except Exception as e:
-            print(f"⚠ Error: {e}")
-            break
+    min_rxtxtime                                              = 6;
 
-def main():
-    du_conn, cu_client_socket = setup_sctp_connection()
-    
-    thread1 = threading.Thread(target=receive_and_forward, args=("DU", du_conn, cu_client_socket))
-    thread2 = threading.Thread(target=receive_and_forward, args=("CU", cu_client_socket, du_conn))
-    
-    thread1.start()
-    thread2.start()
-    
-    thread1.join()
-    thread2.join()
+    servingCellConfigCommon = (
+    {
+ #spCellConfigCommon
 
-if __name__ == "__main__":
-    main()
+      physCellId                                                    = 0;
+
+#  downlinkConfigCommon
+    #frequencyInfoDL
+      # this is 3600 MHz + 43 PRBs@30kHz SCS (same as initial BWP)
+      absoluteFrequencySSB                                          = 641280;
+      dl_frequencyBand                                                 = 78;
+      # this is 3600 MHz
+      dl_absoluteFrequencyPointA                                       = 640008;
+      #scs-SpecificCarrierList
+        dl_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+        dl_subcarrierSpacing                                           = 1;
+        dl_carrierBandwidth                                            = 106;
+     #initialDownlinkBWP
+      #genericParameters
+        # this is RBstart=27,L=48 (275*(L-1))+RBstart
+        initialDLBWPlocationAndBandwidth                               = 28875; # 6366 12925 12956 28875 12952
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+        initialDLBWPsubcarrierSpacing                                           = 1;
+      #pdcch-ConfigCommon
+        initialDLBWPcontrolResourceSetZero                              = 12;
+        initialDLBWPsearchSpaceZero                                             = 0;
+
+  #uplinkConfigCommon 
+     #frequencyInfoUL
+      ul_frequencyBand                                                 = 78;
+      #scs-SpecificCarrierList
+      ul_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+      ul_subcarrierSpacing                                           = 1;
+      ul_carrierBandwidth                                            = 106;
+      pMax                                                          = 20;
+     #initialUplinkBWP
+      #genericParameters
+        initialULBWPlocationAndBandwidth                            = 28875;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+        initialULBWPsubcarrierSpacing                                           = 1;
+      #rach-ConfigCommon
+        #rach-ConfigGeneric
+          prach_ConfigurationIndex                                  = 98;
+#prach_msg1_FDM
+#0 = one, 1=two, 2=four, 3=eight
+          prach_msg1_FDM                                            = 0;
+          prach_msg1_FrequencyStart                                 = 0;
+          zeroCorrelationZoneConfig                                 = 13;
+          preambleReceivedTargetPower                               = -96;
+#preamblTransMax (0...10) = (3,4,5,6,7,8,10,20,50,100,200)
+          preambleTransMax                                          = 6;
+#powerRampingStep
+# 0=dB0,1=dB2,2=dB4,3=dB6
+        powerRampingStep                                            = 1;
+#ra_ReponseWindow
+#1,2,4,8,10,20,40,80
+        ra_ResponseWindow                                           = 4;
+#ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR
+#1=oneeighth,2=onefourth,3=half,4=one,5=two,6=four,7=eight,8=sixteen
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR                = 4;
+#oneHalf (0..15) 4,8,12,16,...60,64
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB                   = 14;
+#ra_ContentionResolutionTimer
+#(0..7) 8,16,24,32,40,48,56,64
+        ra_ContentionResolutionTimer                                = 7;
+        rsrp_ThresholdSSB                                           = 19;
+#prach-RootSequenceIndex_PR
+#1 = 839, 2 = 139
+        prach_RootSequenceIndex_PR                                  = 2;
+        prach_RootSequenceIndex                                     = 1;
+        # SCS for msg1, can only be 15 for 30 kHz < 6 GHz, takes precendence over the one derived from prach-ConfigIndex
+        #  
+        msg1_SubcarrierSpacing                                      = 1,
+# restrictedSetConfig
+# 0=unrestricted, 1=restricted type A, 2=restricted type B
+        restrictedSetConfig                                         = 0,
+
+        msg3_DeltaPreamble                                          = 1;
+        p0_NominalWithGrant                                         =-90;
+
+# pucch-ConfigCommon setup :
+# pucchGroupHopping
+# 0 = neither, 1= group hopping, 2=sequence hopping
+        pucchGroupHopping                                           = 0;
+        hoppingId                                                   = 40;
+        p0_nominal                                                  = -90;
+# ssb_PositionsInBurs_BitmapPR
+# 1=short, 2=medium, 3=long
+      ssb_PositionsInBurst_PR                                       = 2;
+      ssb_PositionsInBurst_Bitmap                                   = 1;
+
+# ssb_periodicityServingCell
+# 0 = ms5, 1=ms10, 2=ms20, 3=ms40, 4=ms80, 5=ms160, 6=spare2, 7=spare1 
+      ssb_periodicityServingCell                                    = 2;
+
+# dmrs_TypeA_position
+# 0 = pos2, 1 = pos3
+      dmrs_TypeA_Position                                           = 0;
+
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+      subcarrierSpacing                                             = 1;
+
+
+  #tdd-UL-DL-ConfigurationCommon
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120  
+      referenceSubcarrierSpacing                                    = 1;
+      # pattern1 
+      # dl_UL_TransmissionPeriodicity
+      # 0=ms0p5, 1=ms0p625, 2=ms1, 3=ms1p25, 4=ms2, 5=ms2p5, 6=ms5, 7=ms10
+      dl_UL_TransmissionPeriodicity                                 = 6;
+      nrofDownlinkSlots                                             = 7;
+      nrofDownlinkSymbols                                           = 6;
+      nrofUplinkSlots                                               = 2;
+      nrofUplinkSymbols                                             = 4;
+
+      ssPBCH_BlockPower                                             = -25;
+     }
+
+  );
+
+
+    # ------- SCTP definitions
+    SCTP :
+    {
+        # Number of streams to use in input/output
+        SCTP_INSTREAMS  = 2;
+        SCTP_OUTSTREAMS = 2;
+    };
+  }
+);
+
+MACRLCs = (
+  {
+    num_cc           = 1;
+    tr_s_preference  = "local_L1";
+    tr_n_preference  = "f1";
+    local_n_address = "10.108.202.33";
+    remote_n_address = "10.109.202.32";
+    local_n_portc   = 500;
+    local_n_portd   = 2153;
+    remote_n_portc  = 501;
+    remote_n_portd  = 2153;
+    pusch_TargetSNRx10          = 200;
+    pucch_TargetSNRx10          = 200;
+  }
+);
+
+L1s = (
+{
+  num_cc = 1;
+  tr_n_preference = "local_mac";
+  prach_dtx_threshold = 200;
+  pucch0_dtx_threshold = 150;
+  ofdm_offset_divisor = 8; #set this to UINT_MAX for offset 0
+}
+);
+
+RUs = (
+    {		  
+       local_rf       = "yes"
+         nb_tx          = 1
+         nb_rx          = 1
+         att_tx         = 0
+         att_rx         = 0;
+         bands          = [78];
+         max_pdschReferenceSignalPower = -27;
+         max_rxgain                    = 114;
+         eNB_instances  = [0];
+         #beamforming 1x4 matrix:
+         bf_weights = [0x00007fff, 0x0000, 0x0000, 0x0000];
+         clock_src = "internal";
+    }
+);  
+
+THREAD_STRUCT = (
+  {
+    #three config for level of parallelism "PARALLEL_SINGLE_THREAD", "PARALLEL_RU_L1_SPLIT", or "PARALLEL_RU_L1_TRX_SPLIT"
+    parallel_config    = "PARALLEL_SINGLE_THREAD";
+    #two option for worker "WORKER_DISABLE" or "WORKER_ENABLE"
+    worker_config      = "WORKER_ENABLE";
+  }
+);
+rfsimulator: {
+serveraddr = "server";
+    serverport = 4043;
+    options = (); #("saviq"); or/and "chanmod"
+    modelname = "AWGN";
+    IQfile = "/tmp/rfsimulator.iqs"
+}
+
+log_config: {
+  global_log_level = "info";
+  hw_log_level = "info";
+  phy_log_level = "info";
+  mac_log_level = "info";
+  rlc_log_level = "info";
+  f1ap_log_level = "info";
+};
+
+#/* configuration for channel modelisation */
+#/* To be included in main config file when */
+#/* channel modelisation is used (rfsimulator with chanmod options enabled) */
+channelmod = {
+  max_chan = 10;
+  modellist = "modellist_rfsimu_1";
+  modellist_rfsimu_1 = (
+    { # DL, modify on UE side
+      model_name     = "rfsimu_channel_enB0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -4;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    },
+    { # UL, modify on gNB side
+      model_name     = "rfsimu_channel_ue0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -2;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    }
+  );
+};
