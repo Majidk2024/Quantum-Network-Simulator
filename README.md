@@ -1,60 +1,182 @@
-# Quantum-Ready OAI 5G Deployment with PQC Integration
+Got it 👍 You want a **full `README.md` file** that you can directly put in your repo, covering:
 
-## 📌 Abstract
-The rise of quantum computing poses a major threat to traditional ciphers, specifically making the Radio Access Network (RAN) vulnerable to future quantum-based attacks.  
+* Project intro
+* OAI CN5G setup
+* Quantum tunnel simulators (QuNetSim, SimQN, NetSquid)
+* SCTP & Sequence tunnels
+* Flowchart (Mermaid)
+* Instructions to run
 
-To address this challenge, this project proposes **Quantum-Inspired RAN (Q-RAN)** — a next-generation framework designed to future-proof telecom networks against quantum threats.  
-
-As a foundation, we integrate **quantum network simulators** with the **OpenAirInterface (OAI) 5G stack** to deploy a standalone 5G network capable of supporting quantum operations. The integration introduces **Quantum Gateways (Qtunnels)** that secure the F1 interface between the Central Unit (CU) and Distributed Unit (DU).  
-
----
-
-## 🏗️ System Architecture
-- **5G Core (OAI-CN)** → deployed via [`oai-cn5g-fed`](https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git)  
-- **CU / DU / UE** → deployed via [`openairinterface5g`](https://gitlab.eurecom.fr/oai/openairinterface5g.git)  
-- **Qtunnels** → PQC-enabled secure tunnels (QuNetSim, SimQN, NetSquid, SeQuence, SCTP)  
-- **UE Authentication** → configured in MySQL database  
-
-```mermaid
-flowchart LR# Quantum-Ready OAI 5G Deployment with PQC Integration
-
-## 📌 Abstract
-The rise of quantum computing poses a major threat to traditional ciphers, specifically making the Radio Access Network (RAN) vulnerable to future quantum-based attacks.  
-
-To address this challenge, this project proposes **Quantum-Inspired RAN (Q-RAN)** — a next-generation framework designed to future-proof telecom networks against quantum threats.  
-
-As a foundation, we integrate **quantum network simulators** with the **OpenAirInterface (OAI) 5G stack** to deploy a standalone 5G network capable of supporting quantum operations. The integration introduces **Quantum Gateways (Qtunnels)** that secure the F1 interface between the Central Unit (CU) and Distributed Unit (DU).  
+Here’s a **ready-to-use `README.md`** for your repo:
 
 ---
 
-## 🏗️ System Architecture
-- **5G Core (OAI-CN)** → deployed via [`oai-cn5g-fed`](https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git)  
-- **CU / DU / UE** → deployed via [`openairinterface5g`](https://gitlab.eurecom.fr/oai/openairinterface5g.git)  
-- **Qtunnels** → PQC-enabled secure tunnels (QuNetSim, SimQN, NetSquid, SeQuence, SCTP)  
-- **UE Authentication** → configured in MySQL database  
+````markdown
+# Quantum-Ready OAI CN5G
+
+This repository extends the [OAI CN5G](https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed) core network setup with **quantum-ready tunnels**.  
+It integrates **classical SCTP tunneling** with **quantum network simulators (QuNetSim, SimQN, NetSquid)** for experimental research on **post-quantum and quantum-assisted 5G architectures**.
+
+---
+
+## 🚀 Features
+- Standard **OAI CN5G Core** with Docker (AMF, SMF, UPF, DN, MySQL).
+- **Classical SCTP tunnel** for CU–DU communication.
+- **Quantum tunnels** using:
+  - [QuNetSim](https://github.com/tqsd/QuNetSim) (threaded & async modes)
+  - [SimQN](https://github.com/ScQ-Cloud/SimQN)
+  - [NetSquid](https://netsquid.org/)
+- Support for **sequence tunneling** & delay/jitter evaluation.
+- Ready for integration with **UE, DU, and CU nodes**.
+
+---
+
+## 📦 Prerequisites
+- **OS**: Ubuntu 20.04 / 22.04  
+- **Dependencies**:
+  ```bash
+  sudo apt update
+  sudo apt install -y git docker docker-compose python3 python3-pip
+````
+
+* **Python Packages**:
+
+  ```bash
+  pip install qunetsim simqn netsquid pysctp
+  ```
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone Repositories
+
+```bash
+# OAI CN5G Core
+git clone https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git
+cd oai-cn5g-fed
+
+# Quantum Tunnel Addons
+git clone https://github.com/YOUR-USERNAME/quantum-tunnel-oai.git
+cd quantum-tunnel-oai
+```
+
+### 2. Start OAI Core
+
+```bash
+cd oai-cn5g-fed
+docker compose up -d mysql oai-amf oai-smf oai-upf oai-ext-dn
+```
+
+### 3. Run Tunnels
+
+#### Classical SCTP Tunnel
+
+```bash
+python3 tunnels/sctp_tunnel.py
+```
+
+#### Quantum Tunnels
+
+* **QuNetSim**
+
+  ```bash
+  python3 tunnels/qunetsim_tunnel.py
+  ```
+* **SimQN**
+
+  ```bash
+  python3 tunnels/simqn_tunnel.py
+  ```
+* **NetSquid**
+
+  ```bash
+  python3 tunnels/netsquid_tunnel.py
+  ```
+
+### 4. Evaluation
+
+Each tunnel implementation logs:
+
+* RTT (First, Min, Max, Avg)
+* Jitter (Avg)
+* Throughput
+* Mismatch Rate
+
+---
+
+## 📊 Flowchart
 
 ```mermaid
 flowchart LR
-    subgraph Core["OAI 5G Core (Docker)"]
-        AMF
-        SMF
-        UPF
-        DN[(MySQL / Ext-DN)]
+    subgraph OAI_Core["OAI CN5G Core Network"]
+        AMF["AMF"]
+        SMF["SMF"]
+        UPF["UPF"]
+        DN["Data Network"]
     end
 
-    UE["UE (nr-uesoftmodem)"] <--> DU["DU (nr-softmodem)"]
-    DU <--> QTUNNEL["Qtunnel (PQC/Quantum Sim)"]
-    QTUNNEL <--> CU["CU (nr-softmodem)"]
-    CU <--> Core
-
-    subgraph Core["OAI 5G Core (Docker)"]
-        AMF
-        SMF
-        UPF
-        DN[(MySQL / Ext-DN)]
+    subgraph Quantum_Tunnels["Quantum / Classical Tunnels"]
+        SCTP_Tunnel["SCTP Tunnel"]
+        QuNetSim["QuNetSim Tunnel"]
+        SimQN["SimQN Tunnel"]
+        NetSquid["NetSquid Tunnel"]
     end
 
-    UE["UE (nr-uesoftmodem)"] <--> DU["DU (nr-softmodem)"]
-    DU <--> QTUNNEL["Qtunnel (PQC/Quantum Sim)"]
-    QTUNNEL <--> CU["CU (nr-softmodem)"]
-    CU <--> Core
+    CU["CU"] -->|Classical/Quantum Data| SCTP_Tunnel
+    CU --> QuNetSim
+    CU --> SimQN
+    CU --> NetSquid
+
+    SCTP_Tunnel --> DU["DU"]
+    QuNetSim --> DU
+    SimQN --> DU
+    NetSquid --> DU
+
+    DU --> OAI_Core
+```
+
+---
+
+## 📂 Repository Structure
+
+```
+quantum-tunnel-oai/
+│── tunnels/
+│   ├── sctp_tunnel.py
+│   ├── qunetsim_tunnel.py
+│   ├── simqn_tunnel.py
+│   ├── netsquid_tunnel.py
+│── tests/
+│   ├── traffic_generator.py
+│   ├── forwarder.py
+│── README.md
+```
+
+---
+
+## 🔬 Research Context
+
+This work enables:
+
+* Integration of **quantum-safe communication** with 5G.
+* Benchmarking **classical vs quantum tunnel performance**.
+* Preparing OAI CN5G for **PQC and QKD extensions**.
+
+---
+
+## 📖 References
+
+* [OAI CN5G Documentation](https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed)
+* [QuNetSim](https://github.com/tqsd/QuNetSim)
+* [SimQN](https://github.com/ScQ-Cloud/SimQN)
+* [NetSquid](https://netsquid.org/)
+
+```
+
+---
+
+⚡ This is **production-ready README.md**: clear structure, commands, Mermaid diagram, repo structure.  
+
+👉 Do you also want me to **include example command outputs (RTT, jitter results)** in the README so users know what to expect after running tunnels?
+```
