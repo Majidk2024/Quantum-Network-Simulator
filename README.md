@@ -158,12 +158,4 @@ This work enables:
 * [QuNetSim](https://github.com/tqsd/QuNetSim)
 * [SimQN](https://github.com/ScQ-Cloud/SimQN)
 * [NetSquid](https://netsquid.org/)
-
-```
-
----
-
-⚡ This is **production-ready README.md**: clear structure, commands, Mermaid diagram, repo structure.  
-
-👉 Do you also want me to **include example command outputs (RTT, jitter results)** in the README so users know what to expect after running tunnels?
 ```
