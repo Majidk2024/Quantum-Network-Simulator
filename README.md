@@ -1,16 +1,3 @@
-Got it 👍 You want a **full `README.md` file** that you can directly put in your repo, covering:
-
-* Project intro
-* OAI CN5G setup
-* Quantum tunnel simulators (QuNetSim, SimQN, NetSquid)
-* SCTP & Sequence tunnels
-* Flowchart (Mermaid)
-* Instructions to run
-
-Here’s a **ready-to-use `README.md`** for your repo:
-
----
-
 ````markdown
 # Quantum-Ready OAI CN5G
 
