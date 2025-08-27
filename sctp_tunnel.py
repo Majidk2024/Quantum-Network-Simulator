@@ -1,72 +1,85 @@
-from socket import AF_INET, socket
-from sctp import sctpsocket_tcp
-import threading
-import time
+Active_gNBs = ( "cu-rfsim");
+# Asn1_verbosity, choice in: none, info, annoying
+Asn1_verbosity = "none";
+Num_Threads_PUSCH = 8;
 
-# -----------------------------
-# NETWORK CONFIGURATION
-# -----------------------------
+gNBs =
+(
+ {
+    ////////// Identification parameters:
+    gNB_ID = 0xe00;
 
-CU_IP = "10.108.202.32"
-DU_IP = "10.108.202.33"
-TUNNEL_IP = "10.109.202.32"
-SCTP_PORT = 38472
-BUFFER_SIZE = 128 * 10 ** 3
+#     cell_type =  "CELL_MACRO_GNB";
 
-# DISTANCE SETTINGS
-DISTANCE_KM = 20  # 20 km distance
-LIGHT_SPEED = 200000000  # Speed in fiber optic (km/s)
-DELAY_SEC = (DISTANCE_KM / LIGHT_SPEED)
+    gNB_name  =  "cu-rfsim";
 
-# -----------------------------
-# SCTP CONNECTIONS
-# -----------------------------
+    // Tracking area code, 0x0000 and 0xfffe are reserved values
+    tracking_area_code  =  1;
+    // plmn_list = ({ mcc = 208; mnc = 95; mnc_length = 2; snssaiList = ({ sst = 1, sd = 0x1 }) });
+    plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1, sd = 0xffffff }) });
 
-def setup_sctp_connection():
-    server_socket = sctpsocket_tcp(AF_INET)
-    server_socket.bind((TUNNEL_IP, SCTP_PORT))
-    server_socket.listen(1)
-    du_conn, addr = server_socket.accept()
-    print(f"✅ Connected to DU at {addr}")
+    nr_cellid = 12345678L;
 
-    cu_client_socket = sctpsocket_tcp(AF_INET)
-    cu_client_socket.connect((CU_IP, SCTP_PORT))
-    print("✅ Connected to CU")
-    
-    return du_conn, cu_client_socket
+    tr_s_preference = "f1";
 
-# -----------------------------
-# MESSAGE FORWARDING WITHOUT QuNetSim
-# -----------------------------
+    local_s_if_name = "enp178s0f0np0";
+    local_s_address = "10.108.202.32";
+    remote_s_address = "10.109.202.32";
+    local_s_portc   = 501;
+    local_s_portd   = 2153;
+    remote_s_portc  = 500;
+    remote_s_portd  = 2153;
 
-def receive_and_forward(src_name, conn, forward_conn):
-    while True:
-        try:
-            data = conn.recv(BUFFER_SIZE)
-            if data:
-                print(f"📥 {src_name} received {len(data)} bytes")
-                
-                # Simulate delay
-                time.sleep(DELAY_SEC)
-                
-                # Forward through SCTP tunnel
-                forward_conn.send(data)
-                print(f"📤 {src_name} forwarded {len(data)} bytes with {DELAY_SEC:.12f}s delay")
-        except Exception as e:
-            print(f"⚠ Error: {e}")
-            break
+    # ------- SCTP definitions
+    SCTP :
+    {
+        # Number of streams to use in input/output
+        SCTP_INSTREAMS  = 2;
+        SCTP_OUTSTREAMS = 2;
+    };
 
-def main():
-    du_conn, cu_client_socket = setup_sctp_connection()
-    
-    thread1 = threading.Thread(target=receive_and_forward, args=("DU", du_conn, cu_client_socket))
-    thread2 = threading.Thread(target=receive_and_forward, args=("CU", cu_client_socket, du_conn))
-    
-    thread1.start()
-    thread2.start()
-    
-    thread1.join()
-    thread2.join()
 
-if __name__ == "__main__":
-    main()
+    ////////// AMF parameters:
+        amf_ip_address      = ( { ipv4       = "192.168.71.132";
+                              ipv6       = "192:168:30::17";
+                              active     = "yes";
+                              preference = "ipv4";
+                            }
+                          );
+
+    NETWORK_INTERFACES :
+    {
+
+        GNB_INTERFACE_NAME_FOR_NG_AMF            = "enp178s0f0np0";
+        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "10.108.202.32";
+        GNB_INTERFACE_NAME_FOR_NGU               = "enp178s0f0np0";
+        GNB_IPV4_ADDRESS_FOR_NGU                 = "10.108.202.32";
+        GNB_PORT_FOR_S1U                         = 2152; # Spec 2152
+    };
+  }
+);
+
+security = {
+  # preferred ciphering algorithms
+  # the first one of the list that an UE supports in chosen
+  # valid values: nea0, nea1, nea2, nea3
+  ciphering_algorithms = ( "nea0" );
+
+  # preferred integrity algorithms
+  # the first one of the list that an UE supports in chosen
+  # valid values: nia0, nia1, nia2, nia3
+  integrity_algorithms = ( "nia2", "nia0" );
+
+  # setting 'drb_ciphering' to "no" disables ciphering for DRBs, no matter
+  # what 'ciphering_algorithms' configures; same thing for 'drb_integrity'
+  drb_ciphering = "yes";
+  drb_integrity = "no";
+};
+
+log_config : {
+  global_log_level = "info";
+  pdcp_log_level = "info";
+  rrc_log_level = "info";
+  f1ap_log_level = "info";
+  ngap_log_level = "info";
+};
